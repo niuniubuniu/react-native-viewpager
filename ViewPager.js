@@ -1,8 +1,7 @@
 'use strict';
 
 var React = require('react');
-var PropTypes = require('prop-types');
-
+import  PropTypes from  'prop-types'
 var ReactNative = require('react-native');
 var {
   Dimensions,
@@ -21,14 +20,12 @@ var DefaultViewPageIndicator = require('./DefaultViewPageIndicator');
 var deviceWidth = Dimensions.get('window').width;
 var ViewPagerDataSource = require('./ViewPagerDataSource');
 
-var ViewPager = React.createClass({
-  mixins: [TimerMixin],
+class ViewPager extends React.Component{
+  static mixins = [TimerMixin];
 
-  statics: {
-    DataSource: ViewPagerDataSource,
-  },
+  static DataSource = ViewPagerDataSource;
 
-  propTypes: {
+  static propTypes =  {
     ...View.propTypes,
     dataSource: PropTypes.instanceOf(ViewPagerDataSource).isRequired,
     renderPage: PropTypes.func.isRequired,
@@ -42,9 +39,13 @@ var ViewPager = React.createClass({
     autoPlay: PropTypes.bool,
     animation: PropTypes.func,
     initialPage: PropTypes.number,
-  },
 
-  fling: false,
+    dotViewStyle: PropTypes.object,
+    dotStyle: PropTypes.object,
+    selectedDotStyle: PropTypes.object,
+  }
+
+  static fling = false;
 
   getDefaultProps() {
     return {
@@ -59,7 +60,7 @@ var ViewPager = React.createClass({
           })
       },
     }
-  },
+  }
 
   getInitialState() {
     return {
@@ -67,7 +68,7 @@ var ViewPager = React.createClass({
       viewWidth: 0,
       scrollValue: new Animated.Value(0)
     };
-  },
+  }
 
   componentWillMount() {
     this.childIndex = 0;
@@ -124,13 +125,13 @@ var ViewPager = React.createClass({
         this.goToPage(initialPage, false);
       }
     }
-  },
+  }
 
   componentDidMount() {
     if (this.props.autoPlay) {
       this._startAutoPlay();
     }
-  },
+  }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.autoPlay) {
@@ -157,16 +158,16 @@ var ViewPager = React.createClass({
       this.fling = false;
     }
 
-  },
+  }
 
   _startAutoPlay() {
     if (!this._autoPlayer) {
       this._autoPlayer = this.setInterval(
         () => {this.movePage(1);},
-        5000
+        2000
       );
     }
-  },
+  }
 
   goToPage(pageNumber, animate = true) {
 
@@ -178,13 +179,13 @@ var ViewPager = React.createClass({
 
     var step = pageNumber - this.state.currentPage;
     this.movePage(step, null, animate);
-  },
+  }
 
   movePage(step, gs, animate = true) {
     var pageCount = this.props.dataSource.getPageCount();
     var pageNumber = this.state.currentPage + step;
     if (this.props.isLoop) {
-      pageNumber = pageCount == 0 ? pageNumber = 0 : ((pageNumber + pageCount) % pageCount);
+      pageNumber = (pageNumber + pageCount) % pageCount;
     } else {
       pageNumber = Math.min(Math.max(0, pageNumber), pageCount - 1);
     }
@@ -215,11 +216,11 @@ var ViewPager = React.createClass({
       postChange();
       moved && this.props.onChangePage && this.props.onChangePage(pageNumber);
     }
-  },
+  }
 
   getCurrentPage() {
     return this.state.currentPage;
-  },
+  }
 
   renderPageIndicator(props) {
     if (this.props.renderPageIndicator === false) {
@@ -228,14 +229,14 @@ var ViewPager = React.createClass({
       return React.cloneElement(this.props.renderPageIndicator(), props);
     } else {
       return (
-        <View style={styles.indicators}>
+        <View style={[styles.indicators,this.props.dotViewStyle]}>
           <DefaultViewPageIndicator {...props} />
         </View>
       );
     }
-  },
+  }
 
-  _getPage(pageIdx: number, loop:boolean) {
+  _getPage(pageIdx: number, loop: boolean = false) {
     var dataSource = this.props.dataSource;
     var pageID = dataSource.pageIdentities[pageIdx];
     return (
@@ -250,7 +251,7 @@ var ViewPager = React.createClass({
         )}
       />
     );
-  },
+  }
 
   render() {
     var dataSource = this.props.dataSource;
@@ -315,8 +316,7 @@ var ViewPager = React.createClass({
           }}
         >
 
-        <Animated.View style={[sceneContainerStyle, {transform: [{translateX}]}]}
-          {...this._panResponder.panHandlers}>
+        <Animated.View style={[sceneContainerStyle, {transform: [{translateX}]}]}>
           {bodyComponents}
         </Animated.View>
 
@@ -325,11 +325,14 @@ var ViewPager = React.createClass({
                             activePage: this.state.currentPage,
                             scrollValue: this.state.scrollValue,
                             scrollOffset: this.childIndex,
+                            dotSize: this.props.dotSize,
+                            dotStyle: this.props.dotStyle,
+                            selectedDotStyle: this.props.selectedDotStyle
                           })}
       </View>
     );
   }
-});
+}
 
 var styles = StyleSheet.create({
   indicators: {
